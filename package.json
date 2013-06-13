@@ -1,0 +1,26 @@
+{
+  "name": "git-repo",
+  "version": "0.0.0",
+  "description": "A local git repository using any pluggable backend.",
+  "main": "repo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/creationix/git-repo.git"
+  },
+  "keywords": [
+    "js-git",
+    "git",
+    "interface",
+    "fs",
+    "git-db"
+  ],
+  "author": "Tim Caswell <tim@creationix.com>",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/creationix/git-repo/issues"
+  }
+}
