@@ -1,5 +1,7 @@
 module.exports = createRepo;
 
+var decode = require('./decode.js');
+
 // config options
 // config.fs - provide a git-fs interface implementation
 // config.db - provide a git-db interface implementation
@@ -27,12 +29,24 @@ function createRepo(config) {
 
   var repo = {
     bare: bare,
-    db: db
+    db: db,
+    load: load,
+    save: save
   };
   if (!bare) {
     repo.fs = fs;
   }
-  
+
+  // load(hash) -> continuable<object>
+  function load(hash) {
+    return decode(db.load(hash));
+  }
+
+  function save(object) {
+    throw new Error("TODO: Implement save")
+  }
+
+
   return repo;
 
 }

@@ -3,7 +3,6 @@
 
 var gitRepo = require('../.');
 var minFs = require('min-fs');
-var decode = require('../decode.js');
 var run = require('gen-run');
 
 var repo = gitRepo({
@@ -18,11 +17,11 @@ function* main() {
   // Get the first file from the top tree in HEAD
   var hash = yield db.read("HEAD");
   console.log("HEAD", hash);
-  var head = yield decode(db.load(hash));
+  var head = yield repo.load(hash);
   console.log(head);
-  var tree = yield decode(db.load(head.commit.tree));
+  var tree = yield repo.load(head.commit.tree);
   console.log(tree);
-  var blob = yield decode(db.load(tree.tree[0].hash));
+  var blob = yield repo.load(tree.tree[0].hash);
   console.log(blob);
   var text = yield consume(blob.blob.source);
   console.log({hash:blob.hash,body:text});
@@ -30,7 +29,7 @@ function* main() {
   // Load an annotated tag
   hash = yield db.read("/refs/tags/test-tag");
   console.log("test-tag", hash);
-  var tag = yield decode(db.load(hash));
+  var tag = yield repo.load(hash);
   console.log(tag);
 }
 
