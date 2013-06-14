@@ -1,6 +1,7 @@
 var inflate = require('./inflate.js');
 var deflate = require('./deflate.js');
 var consume = require('./stream-to-string.js');
+var sha1 = require('./sha1.js');
 
 module.exports = function (fs) {
 
@@ -26,8 +27,35 @@ module.exports = function (fs) {
 
   // save(source<binary>) -> continuable<hash>
   function save(source) {
+    var tmp = (Math.random() * 0x100000000).toString(32) + Date.now().toString(32) + ".tmp";
+    var sha1sum = sha1();
+    var hash;
+
+    // Tap the stream to record the sha1sum on the way through.
+    function tapped(close, callback) {
+      if (close) return source(close, callback);
+      source(null, function (err, chunk) {
+        if (chunk === undefined) {
+          if (err) return callback(err);
+          hash = sha1sum();
+          callback();
+        }
+        else {
+          sha1sum(chunk);
+          callback(null, chunk);
+        }
+      });
+    }
+
     return function (callback) {
-      throw new Error("TODO: Implement save()");
+      fs.write(tmp)(deflate(tapped))(function (err) {
+        if (err) return callback(err);
+        var path = "objects/" + hash.substr(0, 2) + "/" + hash.substr(2);
+        fs.rename(tmp, path)(function (err) {
+          if (err) return callback(err);
+          callback(null, hash);
+        });
+      });
     };
   }
 
