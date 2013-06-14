@@ -1,6 +1,7 @@
 module.exports = createRepo;
 
 var decode = require('./decode.js');
+var encode = require('./encode.js');
 
 // config options
 // config.fs - provide a git-fs interface implementation
@@ -42,8 +43,9 @@ function createRepo(config) {
     return decode(db.load(hash));
   }
 
+  // encode(object) -> continuable<hash>
   function save(object) {
-    throw new Error("TODO: Implement save")
+    return db.save(encode(object));
   }
 
 
