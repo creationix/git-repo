@@ -24,7 +24,10 @@ A local git repository using any pluggable backend.
 ```
 {
   hash: hash,
-  tree: source<{ mode: mode, path: path, hash: hash }>
+  tree: [
+    { mode: mode, path: path, hash: hash }
+    ...
+  ]
 }
 ```
 
@@ -33,7 +36,10 @@ A local git repository using any pluggable backend.
 ```
 {
   hash: hash,
-  blob: source<binary>
+  blob: {
+    size: size
+    source: source<binary>
+  }
 }
 ```
 
