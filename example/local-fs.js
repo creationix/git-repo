@@ -1,13 +1,14 @@
 #!/usr/bin/env node --harmony_generators
 
 var gitRepo = require('../.');
-var minFs = require('min-fs');
+var fs = require('min-fs');
 var run = require('gen-run');
 var consume = require('../stream-to-string.js');
 
 run(function* main() {
 
-  var repo = gitRepo({ fs: minFs("my-repo") });
+  // Configure the repo API to work from a local clone.
+  var repo = gitRepo({ fs: fs("./my-repo") });
 
   // Find out what sha1 hash HEAD points to
   var hash = yield repo.db.read("HEAD");
