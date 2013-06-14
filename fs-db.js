@@ -1,6 +1,11 @@
+var bops = require('bops');
+var deflate = require('./deflate.js');
+var inflate = require('./inflate.js');
+
 module.exports = function (fs) {
 
   return {
+    root: fs.root,
     load: load,
     save: save,
     read: read,
@@ -15,7 +20,8 @@ module.exports = function (fs) {
 
   // load(hash) -> source<binary>
   function load(hash) {
-    throw new Error("TODO: Implement load()");
+    var path = "objects/" + hash.substr(0, 2) + "/" + hash.substr(2);
+    return inflate(fs.read(path));
   }
 
   // save(source<binary>) -> continuable<hash>
@@ -28,7 +34,14 @@ module.exports = function (fs) {
   // read(path) -> continauble<hash>
   function read(path) {
     return function (callback) {
-      throw new Error("TODO: Implement read()");
+      readSym(path)(onRead);
+      function onRead(err, hash) {
+        if (err) return callback(err);
+        if (hash.substr(0, 4) === "ref:") {
+          return readSym(hash.substr(4).trim())(onRead);
+        }
+        callback(null, hash.trim());
+      }
     };
   }
 
@@ -41,9 +54,7 @@ module.exports = function (fs) {
 
   // readSym(path) -> continable<path>
   function readSym(path) {
-    return function (callback) {
-      throw new Error("TODO: Implement readSym()");
-    };
+    return consume(fs.read(path));
   }
 
   // writeSym(path, target) -> continuable
@@ -76,4 +87,30 @@ module.exports = function (fs) {
     };
   }
 
+}
+
+// consume(source<binary>) -> continuable<string>
+function consume(source) {
+  return function (callback) {
+    var parts = [];
+    var sync;
+    start();
+    function start() {
+      do {
+        sync = undefined;
+        source(null, onRead);
+        if (sync === undefined) sync = false;
+      } while (sync);
+    }
+    function onRead(err, item) {
+      if (item === undefined) return onEnd(err);
+      parts.push(item);
+      if (sync === undefined) sync = true;
+      else start();
+    }
+    function onEnd(err) {
+      if (err) return callback(err);
+      callback(null, bops.to(bops.join(parts)));
+    }
+  };
 }

@@ -3,8 +3,8 @@ module.exports = createRepo;
 // config options
 // config.fs - provide a git-fs interface implementation
 // config.db - provide a git-db interface implementation
-// config.bare - boolean declaring this a bare repo (no staging area or working files)
-// If you provide fs, but no db, a db interface that follows the cgit fs pattern will be used
+// config.bare - boolean declaring this a bare repo
+// If you provide fs, but no db, a db interface that uses the fs will be used.
 // if you want a bare repo, the fs part can be omitted.
 function createRepo(config) {
   var bare = !!config.bare;
@@ -25,11 +25,15 @@ function createRepo(config) {
     }
   }
 
-  console.log({
+  var repo = {
     bare: bare,
-    fs: fs,
     db: db
-  });
+  };
+  if (!bare) {
+    repo.fs = fs;
+  }
+  
+  return repo;
 
 }
 
