@@ -1,6 +1,5 @@
-var bops = require('bops');
-var deflate = require('./deflate.js');
 var inflate = require('./inflate.js');
+var deflate = require('./deflate.js');
 
 module.exports = function (fs) {
 
@@ -89,10 +88,10 @@ module.exports = function (fs) {
 
 }
 
-// consume(source<binary>) -> continuable<string>
+// consume(source<binary>) -> continuable<binary_encoded_string>
 function consume(source) {
   return function (callback) {
-    var parts = [];
+    var data = "";
     var sync;
     start();
     function start() {
@@ -104,13 +103,15 @@ function consume(source) {
     }
     function onRead(err, item) {
       if (item === undefined) return onEnd(err);
-      parts.push(item);
+      for (var i = 0, l = item.length; i < l; i++) {
+        data += String.fromCharCode(item[i]);
+      }
       if (sync === undefined) sync = true;
       else start();
     }
     function onEnd(err) {
       if (err) return callback(err);
-      callback(null, bops.to(bops.join(parts)));
+      callback(null, data);
     }
   };
 }
