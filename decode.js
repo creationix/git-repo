@@ -58,7 +58,38 @@ var parser = {
     return "message";
   },
   tree: function (byte) {
-    throw new Error("TODO: Implement tree state");
+    this.mode = byte - 0x30;
+    this.path = "";
+    this.hash = "";
+    return "mode";
+  },
+  mode: function (byte) {
+    if (byte !== 0x20) {
+      this.mode = this.mode * 8 + byte - 0x30;
+      return "mode";
+    }
+    return "path";
+  },
+  path: function (byte) {
+    if (byte !== 0x00) {
+      this.path += String.fromCharCode(byte);
+      return "path";
+    }
+    return "hash";
+  },
+  hash: function (byte) {
+    if (byte < 0x10) this.hash += "0" + byte.toString(16);
+    else this.hash += byte.toString(16);
+    if (this.hash.length < 20) return "hash";
+    this.data.push({
+      mode: this.mode,
+      path: this.path,
+      hash: this.hash
+    });
+    this.mode = 0;
+    this.path = "";
+    this.hash = "";
+    return "mode";
   },
   blob: function (byte) {
     throw new Error("TODO: Implement blob state");
