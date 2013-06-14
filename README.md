@@ -10,8 +10,9 @@ A local git repository using any pluggable backend.
   hash: hash,
   commit: {
     tree: hash
-    key: [value1, value2, ...]
-    key2: [value1, value2, ...]
+    parents: [parent1, parent2, ...]
+    key: value
+    key2: value2
     ...
     message: message
   }
@@ -43,8 +44,8 @@ A local git repository using any pluggable backend.
   hash: hash,
   tag: {
     tree: hash
-    key: [value1, value2, ...]
-    key2: [value1, value2, ...]
+    key: value
+    key2: value2
     ...
     message: message
   }
