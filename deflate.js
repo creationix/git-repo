@@ -11,6 +11,12 @@ function deflate(read) {
   var def = zlib.createDeflate();
   def.on("error", onError);
   def.on("data", onData);
+  def.on("end", onEnd);
+
+  function onEnd() {
+    dataQueue.push([]);
+    check();
+  }
 
   function onError(err) {
     dataQueue.push([err]);
@@ -38,9 +44,7 @@ function deflate(read) {
     if (chunk === undefined) {
       done = true;
       if (err) dataQueue.push([err]);
-      else {
-        def.flush();
-      }
+      def.end();
     }
     else def.write(chunk);
     check();

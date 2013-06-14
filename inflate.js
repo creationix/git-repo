@@ -11,6 +11,12 @@ function inflate(read) {
   var inf = new zlib.Inflate();
   inf.on("error", onError);
   inf.on("data", onData);
+  inf.on("end", onEnd);
+
+  function onEnd() {
+    dataQueue.push([]);
+    check();
+  }
 
   function onError(err) {
     dataQueue.push([err]);
@@ -37,7 +43,8 @@ function inflate(read) {
     reading = false;
     if (chunk === undefined) {
       done = true;
-      dataQueue.push([err]);
+      if (err) dataQueue.push([err]);
+      inf.end();
     }
     else inf.write(chunk);
     check();
