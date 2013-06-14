@@ -1,4 +1,4 @@
-var bops = require('bops');
+var sha1 = require('./sha1.js');
 
 module.exports = decode;
 
@@ -110,14 +110,18 @@ function decode(source) {
     type: "",
     length: 0
   };
+  var shasum = sha1();
 
   function onRead(err, chunk) {
     if (chunk === undefined) {
       if (err) return callback(err);
-      var obj = {};
+      var obj = {
+        hash: shasum()
+      };
       obj[data.type] = data.data;
       return callback(err, obj);
     }
+    shasum(chunk);
     for (var i = 0, l = chunk.length; i < l; i++) {
       state = parser[state].call(data, chunk[i]);
     }

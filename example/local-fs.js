@@ -24,5 +24,10 @@ function* main() {
   var tree = yield decode(db.load(head.commit.tree));
   console.log(tree);
 
+  hash = yield db.read("/refs/tags/test-tag");
+  console.log("test-tag", hash);
+
+  var tag = yield decode(db.load(hash));
+  console.log(tag);
 }
 
