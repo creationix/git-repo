@@ -4,6 +4,7 @@ var gitRepo = require('../.');
 var fs = require('min-fs');
 var run = require('gen-run');
 var consume = require('../stream-to-string.js');
+var create = require('../string-to-stream.js');
 
 run(function* main() {
 
@@ -38,5 +39,20 @@ run(function* main() {
 
   var tag = yield repo.load(hash);
   console.log(tag);
+
+  // Create a new file
+  var hash = yield repo.save({
+    hash: undefined,
+    blob: {
+      length: 12,
+      source: create("Hello World\n")
+    }
+  });
+  console.log(hash);
+  // Load it back
+  var obj = yield repo.load(hash);
+  console.log(obj);
+  var text = yield consume(obl.blob.source);
+  console.log({ hash: obj.hash, body: text });
 
 });
