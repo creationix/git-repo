@@ -19,7 +19,7 @@ function* main() {
   console.log("HEAD", hash);
 
   var commit = yield decode(db.load(hash));
-  console.log("Commit", commit);
+  console.log(commit);
 
 }
 
