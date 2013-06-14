@@ -1,21 +1,16 @@
 #!/usr/bin/env node --harmony_generators
 
-
 var gitRepo = require('../.');
 var minFs = require('min-fs');
 var run = require('gen-run');
+var consume = require('../stream-to-string.js');
 
-var repo = gitRepo({
-  fs: minFs("my-repo"),
-});
-var db = repo.db;
+run(function* main() {
 
-run(main);
-
-function* main() {
+  var repo = gitRepo({ fs: minFs("my-repo") });
 
   // Get the first file from the top tree in HEAD
-  var hash = yield db.read("HEAD");
+  var hash = yield repo.db.read("HEAD");
   console.log("HEAD", hash);
   var head = yield repo.load(hash);
   console.log(head);
@@ -27,36 +22,8 @@ function* main() {
   console.log({hash:blob.hash,body:text});
 
   // Load an annotated tag
-  hash = yield db.read("/refs/tags/test-tag");
+  hash = yield repo.db.read("/refs/tags/test-tag");
   console.log("test-tag", hash);
   var tag = yield repo.load(hash);
   console.log(tag);
-}
-
-// consume(source<binary>) -> continuable<binary_encoded_string>
-function consume(source) {
-  return function (callback) {
-    var data = "";
-    var sync;
-    start();
-    function start() {
-      do {
-        sync = undefined;
-        source(null, onRead);
-        if (sync === undefined) sync = false;
-      } while (sync);
-    }
-    function onRead(err, item) {
-      if (item === undefined) return onEnd(err);
-      for (var i = 0, l = item.length; i < l; i++) {
-        data += String.fromCharCode(item[i]);
-      }
-      if (sync === undefined) sync = true;
-      else start();
-    }
-    function onEnd(err) {
-      if (err) return callback(err);
-      callback(null, data);
-    }
-  };
-}
+});
