@@ -22,5 +22,9 @@
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/creationix/git-repo/issues"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "min-fs": "~0.1.2"
   }
 }
