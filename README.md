@@ -9,9 +9,9 @@ A local git repository using any pluggable backend.
 {
   hash: hash,
   commit: {
-    parents: [parent1, parent2, ...]
-    key: value
-    key2: value2
+    tree: hash
+    key: [value1, value2, ...]
+    key2: [value1, value2, ...]
     ...
     message: message
   }
@@ -23,10 +23,7 @@ A local git repository using any pluggable backend.
 ```
 {
   hash: hash,
-  tree: [
-    { mode: mode, path: path, hash: hash }
-    ...
-  ]
+  tree: source<{ mode: mode, path: path, hash: hash }>
 }
 ```
 
@@ -45,8 +42,9 @@ A local git repository using any pluggable backend.
 {
   hash: hash,
   tag: {
-    key: value
-    key2: value2
+    tree: hash
+    key: [value1, value2, ...]
+    key2: [value1, value2, ...]
     ...
     message: message
   }
