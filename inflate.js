@@ -33,7 +33,7 @@ function inflate(read) {
       readQueue.shift().apply(null, dataQueue.shift());
     }
 
-    if (!reading && readQueue.length) {
+    if (!reading && !done && readQueue.length) {
       reading = true;
       read(null, onRead);
     }
