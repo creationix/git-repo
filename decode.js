@@ -16,8 +16,7 @@ var parser = {
       this.length = this.length * 10 + byte - 0x30;
       return "length";
     }
-    if (this.type === "tree") this.data = [];
-    else this.data = {};
+    this.data = {};
     return this.type;
   },
   commit: function (byte) {
@@ -79,9 +78,8 @@ var parser = {
     if (byte < 0x10) this.hash += "0" + byte.toString(16);
     else this.hash += byte.toString(16);
     if (this.hash.length < 40) return "hash";
-    this.data.push({
+    this.data[this.path] = ({
       mode: this.mode,
-      path: this.path,
       hash: this.hash
     });
     this.mode = 0;

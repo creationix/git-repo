@@ -45,7 +45,21 @@ var encoders = {
     return toStream(str + "\n" + commit.message);
   },
   tree: function (tree) {
-    throw new Error("TODO: Implement tree encoding");
+    var chunks = [null];
+    var length = 0;
+    Object.keys(tree).sort(pathCmp).forEach(function (name) {
+      var entry = tree[name];
+      var left = bops.from(entry.mode.toString(8) + " " + name + "\0");
+      var right = bops.from(entry.hash, "hex");
+      length += left.length + right.length;
+      chunks.push(left, right);
+    });
+    chunks[0] = bops.from("tree " + length.toString(10) + "\0");
+    var i = 0;
+    return function (close, callback) {
+      if (close) return callback(close === true ? null : close);
+      callback(null, chunks[i++]);
+    };
   },
   blob: function (blob) {
     var first = bops.from("blob " + blob.length.toString(10) + "\0");
@@ -67,3 +81,8 @@ var encoders = {
     return toStream(str + "\n" + tag.message);
   }
 };
+
+function pathCmp(a, b) {
+  a += "/"; b += "/";
+  return a < b ? -1 : a > b ? 1 : 0;
+}
