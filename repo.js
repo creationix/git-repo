@@ -32,7 +32,9 @@ function createRepo(config) {
     bare: bare,
     db: db,
     load: load,
-    save: save
+    save: save,
+    readRef: readRef,
+    updateHead: updateHead
   };
   if (!bare) {
     repo.fs = fs;
@@ -46,6 +48,36 @@ function createRepo(config) {
   // encode(object) -> continuable<hash>
   function save(object) {
     return db.save(encode(object));
+  }
+
+  // readRef(path) -> continuable<hash>
+  // resolves symbolic refs
+  function readRef(ref) {
+    return function (callback) {
+      db.read(ref)(onRead);
+      function onRead(err, value) {
+        if (err) return callback(err);
+        if (value.substr(0, 4) === "ref:") {
+          db.read(value.substr(4).trim())(onRead);
+          return;
+        }
+        callback(null, value.trim());
+      }
+    };
+  }
+
+  // updateHead(hash) -> continuable
+  // writes hash to whatever HEAD points to.
+  function updateHead(hash) {
+    return function (callback) {
+      db.read("HEAD")(function (err, value) {
+        if (err) return callback(err);
+        if (value.substr(0, 4) !== "ref:") {
+          return callback(new Error("HEAD must be symbolic ref"));
+        }
+        db.write(value.substr(4).trim(), hash + "\n")(callback);
+      });
+    };
   }
 
 

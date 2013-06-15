@@ -12,7 +12,8 @@ run(function* main() {
   var repo = gitRepo({ fs: fs("./my-repo") });
 
   // Find out what sha1 hash HEAD points to
-  var masterHash = yield repo.db.read("HEAD");
+  console.log("Looking up hash that HEAD points to...");
+  var masterHash = yield repo.readRef("HEAD");
   console.log("HEAD", masterHash);
 
   // Load that commit as an object
@@ -34,7 +35,7 @@ run(function* main() {
 
 
 //   // Load an annotated tag
-//   hash = yield repo.db.read("/refs/tags/test-tag");
+//   hash = yield repo.readRef("/refs/tags/test-tag");
 //   console.log("test-tag", hash);
 //
 //   var tag = yield repo.load(hash);
@@ -76,8 +77,7 @@ run(function* main() {
     }
   });
   console.log("newHead", newHead);
-  var ref = yield repo.db.readSym("HEAD");
-  yield repo.db.write(ref, newHead);
+  yield repo.updateHead(newHead);
 
 });
 

@@ -11,8 +11,6 @@ module.exports = function (fs) {
     save: save,
     read: read,
     write: write,
-    readSym: readSym,
-    writeSym: writeSym,
     listObjects: listObjects,
     listRefs: listRefs,
     removeObject: removeObject,
@@ -77,45 +75,19 @@ module.exports = function (fs) {
     };
   }
 
-  // read(path) -> continauble<hash>
+  // read(path) -> continauble<value>
   function read(path) {
-    return function (callback) {
-      fs.read(path, "ascii")(onRead);
-      function onRead(err, hash) {
-        if (err) return callback(err);
-        if (hash.substr(0, 4) === "ref:") {
-          return fs.read(hash.substr(4).trim(), "ascii")(onRead);
-        }
-        callback(null, hash.trim());
-      }
-    };
+    return fs.read(path, "ascii");
   }
 
-  // write(path, hash) -> continuable
-  function write(path, hash) {
+  // write(path, value) -> continuable
+  function write(path, value) {
     return function (callback) {
       mkdirp(dirname(path), function (err) {
         if (err) return callback(err);
-        fs.write(path, hash)(callback);
+        fs.write(path, value)(callback);
       });
     };
-  }
-
-  // readSym(path) -> continable<path>
-  function readSym(path) {
-    return function (callback) {
-      fs.read(path, "ascii")(function (err, data) {
-        if (data.substr(0, 4) !== "ref:") {
-          return callback(new Error("Not a symref: " + path));
-        }
-        callback(null, data.substr(4).trim());
-      });
-    };
-  }
-
-  // writeSym(path, target) -> continuable
-  function writeSym(path, target) {
-    return write(path, "ref: " + target + "\n");
   }
 
   // listObjects() -> source<hash>
