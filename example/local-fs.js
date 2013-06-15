@@ -3,8 +3,8 @@
 var gitRepo = require('../.');
 var fs = require('min-fs');
 var run = require('gen-run');
-var consume = require('../stream-to-string.js');
-var create = require('../string-to-stream.js');
+var consume = require('./stream-to-string.js');
+var create = require('./string-to-stream.js');
 
 run(function* main() {
 
