@@ -11,6 +11,7 @@ module.exports = function (fs) {
     save: save,
     read: read,
     write: write,
+    mkdir: fs.mkdir,
     listObjects: listObjects,
     listRefs: listRefs,
     removeObject: removeObject,
@@ -20,7 +21,12 @@ module.exports = function (fs) {
   function mkdirp(path, callback) {
     fs.mkdir(path)(function (err) {
       if (!err || err.code === "EEXIST") return callback();
-      if (err.code === "ENOENT") return mkdirp(dirname(path), callback);
+      if (err.code === "ENOENT") {
+        return mkdirp(dirname(path), function (err) {
+          if (err) return callback(err);
+          mkdirp(path, callback);
+        });
+      }
       return callback(err);
     });
   }
