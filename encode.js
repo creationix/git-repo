@@ -42,7 +42,7 @@ var encoders = {
         str += key + " " + value + "\n";
       }
     });
-    return toStream(str + "\n" + commit.message);
+    return toStream("commit", str + "\n" + commit.message);
   },
   tree: function (tree) {
     var chunks = [null];
@@ -78,7 +78,7 @@ var encoders = {
       var value = tag[key];
       str += key + " " + value + "\n";
     });
-    return toStream(str + "\n" + tag.message);
+    return toStream("tag", str + "\n" + tag.message);
   }
 };
 
