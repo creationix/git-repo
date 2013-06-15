@@ -31,7 +31,7 @@
     "bops": "~0.0.6"
   },
   "devDependencies": {
-    "min-fs": "~0.1.4",
+    "min-fs": "~0.1.5",
     "gen-run": "~0.1.0"
   }
 }

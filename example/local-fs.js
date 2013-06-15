@@ -48,11 +48,12 @@ run(function* main() {
       source: create("Hello World\n")
     }
   });
-  console.log(hash);
+  console.log("hash", hash);
   // Load it back
   var obj = yield repo.load(hash);
   console.log(obj);
-  var text = yield consume(obl.blob.source);
+  var text = yield consume(obj.blob.source);
   console.log({ hash: obj.hash, body: text });
+  console.log("Should be 557db03de997c86a4a028e1ebd3a1ceb225be238");
 
 });
