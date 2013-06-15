@@ -69,7 +69,7 @@ run(function* main() {
   var newHead = yield repo.save({
     commit: {
       tree: treeHash,
-      parents: [masterHash],
+      parent: masterHash,
       author: "Tim Caswell <tim@creationix.com> " + gitDate(new Date),
       committer: "Tim Caswell <tim@creationix.com> " + gitDate(new Date),
       message: "This is a commit created by js-git"
