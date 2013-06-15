@@ -1,7 +1,7 @@
 var inflate = require('./inflate.js');
 var deflate = require('./deflate.js');
-var consume = require('./stream-to-string.js');
 var sha1 = require('./sha1.js');
+var dirname = require('path').dirname;
 
 module.exports = function (fs) {
 
@@ -19,15 +19,30 @@ module.exports = function (fs) {
     removeRef: removeRef
   };
 
+  function mkdirp(path, callback) {
+    fs.mkdir(path)(function (err) {
+      if (!err || err.code === "EEXIST") return callback();
+      if (err.code === "ENOENT") return mkdirp(dirname(path), callback);
+      return callback(err);
+    });
+  }
+
+  function writeStreamp(path, source, callback) {
+    mkdirp(dirname(path), function (err) {
+      if (err) return callback(err);
+      fs.writeStream(path)(source)(callback);
+    });
+  }
+
   // load(hash) -> source<binary>
   function load(hash) {
     var path = "objects/" + hash.substr(0, 2) + "/" + hash.substr(2);
-    return inflate(fs.read(path));
+    return inflate(fs.readStream(path));
   }
 
   // save(source<binary>) -> continuable<hash>
   function save(source) {
-    var tmp = (Math.random() * 0x100000000).toString(32) + Date.now().toString(32) + ".tmp";
+    var tmp = "." + (Math.random() * 0x100000000).toString(32) + Date.now().toString(32) + ".tmp";
     var sha1sum = sha1();
     var hash;
 
@@ -48,12 +63,15 @@ module.exports = function (fs) {
     }
 
     return function (callback) {
-      fs.write(tmp)(deflate(tapped))(function (err) {
+      writeStreamp(tmp, deflate(tapped), function (err) {
         if (err) return callback(err);
         var path = "objects/" + hash.substr(0, 2) + "/" + hash.substr(2);
-        fs.rename(tmp, path)(function (err) {
+        mkdirp(dirname(path), function (err) {
           if (err) return callback(err);
-          callback(null, hash);
+          fs.rename(tmp, path)(function (err) {
+            if (err) return callback(err);
+            callback(null, hash);
+          });
         });
       });
     };
@@ -62,11 +80,11 @@ module.exports = function (fs) {
   // read(path) -> continauble<hash>
   function read(path) {
     return function (callback) {
-      readSym(path)(onRead);
+      fs.read(path, "ascii")(onRead);
       function onRead(err, hash) {
         if (err) return callback(err);
         if (hash.substr(0, 4) === "ref:") {
-          return readSym(hash.substr(4).trim())(onRead);
+          return fs.read(hash.substr(4).trim(), "ascii")(onRead);
         }
         callback(null, hash.trim());
       }
@@ -76,20 +94,28 @@ module.exports = function (fs) {
   // write(path, hash) -> continuable
   function write(path, hash) {
     return function (callback) {
-      throw new Error("TODO: Implement write()");
+      mkdirp(dirname(path), function (err) {
+        if (err) return callback(err);
+        fs.write(path, hash)(callback);
+      });
     };
   }
 
   // readSym(path) -> continable<path>
   function readSym(path) {
-    return consume(fs.read(path));
+    return function (callback) {
+      fs.read(path, "ascii")(function (err, data) {
+        if (data.substr(0, 4) !== "ref:") {
+          return callback(new Error("Not a symref: " + path));
+        }
+        callback(null, data.substr(4).trim());
+      });
+    };
   }
 
   // writeSym(path, target) -> continuable
   function writeSym(path, target) {
-    return function (callback) {
-      throw new Error("TODO: Implement writeSym()");
-    };
+    return write(path, "ref: " + target + "\n");
   }
 
   // listObjects() -> source<hash>
@@ -115,4 +141,4 @@ module.exports = function (fs) {
     };
   }
 
-}
+};
