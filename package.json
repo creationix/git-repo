@@ -1,6 +1,6 @@
 {
   "name": "git-repo",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A local git repository using any pluggable backend.",
   "main": "repo.js",
   "scripts": {
@@ -31,7 +31,7 @@
     "bops": "~0.0.6"
   },
   "devDependencies": {
-    "min-fs": "~0.1.5",
+    "min-fs": "~0.2.0",
     "gen-run": "~0.1.0"
   }
 }
