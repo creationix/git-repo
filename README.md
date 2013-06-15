@@ -24,8 +24,9 @@ A local git repository using any pluggable backend.
 ```
 {
   hash: hash,
-  tree: [
-    { mode: mode, path: path, hash: hash }
+  tree: {
+    path: {mode: mode, hash: hash},
+    path2: {mode: mode, hash: hash},
     ...
   ]
 }
