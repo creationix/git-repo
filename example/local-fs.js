@@ -12,19 +12,19 @@ run(function* main() {
   var repo = gitRepo({ fs: fs("./my-repo") });
 
   // Find out what sha1 hash HEAD points to
-  var hash = yield repo.db.read("HEAD");
-  console.log("HEAD", hash);
+  var masterHash = yield repo.db.read("HEAD");
+  console.log("HEAD", masterHash);
 
   // Load that commit as an object
-  var head = yield repo.load(hash);
+  var head = yield repo.load(masterHash);
   console.log(head);
 
   // Load the tree it points to
   var top = yield repo.load(head.commit.tree);
   console.log(top);
 
-  // Load the first file in the tree
-  var obj = yield repo.load(top.tree[0].hash);
+  // Load the README.md file in the tree
+  var obj = yield repo.load(top.tree["README.md"].hash);
   console.log(obj);
 
   // Buffer the file stream to a string
@@ -33,12 +33,12 @@ run(function* main() {
   console.log({ hash: obj.hash, body: text });
 
 
-  // Load an annotated tag
-  hash = yield repo.db.read("/refs/tags/test-tag");
-  console.log("test-tag", hash);
-
-  var tag = yield repo.load(hash);
-  console.log(tag);
+//   // Load an annotated tag
+//   hash = yield repo.db.read("/refs/tags/test-tag");
+//   console.log("test-tag", hash);
+//
+//   var tag = yield repo.load(hash);
+//   console.log(tag);
 
   // Create a new file
   var hash = yield repo.save({
@@ -56,4 +56,34 @@ run(function* main() {
   console.log({ hash: obj.hash, body: text });
   console.log("Should be 557db03de997c86a4a028e1ebd3a1ceb225be238");
 
+  // save the file in the top directory under welcome.txt
+  top.tree["welcome.txt"] = {
+    mode: 0100644,
+    hash: obj.hash
+  };
+  top.hash = undefined;
+  var treeHash = yield repo.save(top);
+  console.log("treeHash", treeHash);
+
+  // Create a new commit object
+  var newHead = yield repo.save({
+    commit: {
+      tree: treeHash,
+      parents: [masterHash],
+      author: "Tim Caswell <tim@creationix.com> " + gitDate(new Date),
+      committer: "Tim Caswell <tim@creationix.com> " + gitDate(new Date),
+      message: "This is a commit created by js-git"
+    }
+  });
+  console.log("newHead", newHead);
+  var ref = yield repo.db.readSym("HEAD");
+  yield repo.db.write(ref, newHead);
+
 });
+
+
+function gitDate(date) {
+  var timezone = date.getTimezoneOffset() / 60;
+  var seconds = Math.floor(date.getTime() / 1000);
+  return seconds + " " + (timezone > 0 ? "-0" : "0") + timezone + "00";
+}
