@@ -54,13 +54,22 @@ module.exports = function (fs) {
     };
   }
 
+  function map(obj, fn) {
+    var keys = Object.keys(obj);
+    var str = "";
+    for (var i = 0, l = keys.length; i < l; i++) {
+      var key = keys[i];
+      str += fn(key, obj[key]);
+    }
+    return str;
+  }
+
   function init(config) {
-    var conf = Object.keys(config).map(function (key) {
-      var section = config[key];
-      return "[" + key + "]\n" + Object.keys(section).map(function (key) {
-        return "\t" + key + " = " + JSON.stringify(section[key]) + "\n";
-      }).join("");
-    }).join("");
+    var conf = map(config, function (key, section) {
+      return "[" + key + "]\n" + map(section, function (key, value) {
+        return "\t" + key + " = " + JSON.stringify(value) + "\n";
+      });
+    });
     var description = "Unnamed repository; edit this file 'description' to name the repository.\n";
     var exclude =
       "# git ls-files --others --exclude-from=.git/info/exclude\n" +
