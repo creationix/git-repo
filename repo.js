@@ -11,6 +11,7 @@ var encode = require('./encode.js');
 // if you want a bare repo, the fs part can be omitted.
 function createRepo(config) {
   var bare = !!config.bare;
+  var init = !!config.init;
   var db = config.db;
   var fs = config.fs;
   if (!fs && !bare) {
@@ -80,8 +81,21 @@ function createRepo(config) {
     };
   }
 
-
-  return repo;
+  if (init) {
+    return function (callback) {
+      db.init({ core: {
+        repositoryformatversion: 0,
+        filemode: true,
+        bare: bare
+      }})(function (err) {
+        if (err) return callback(err);
+        callback(null, repo);
+      });
+    };
+  }
+  return function (callback) {
+    callback(null, repo);
+  };
 
 }
 

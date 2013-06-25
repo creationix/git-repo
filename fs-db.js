@@ -7,6 +7,7 @@ module.exports = function (fs) {
 
   return {
     root: fs.root,
+    init: init,
     load: load,
     save: save,
     read: read,
@@ -17,6 +18,86 @@ module.exports = function (fs) {
     removeObject: removeObject,
     removeRef: removeRef
   };
+
+  function parallel() {
+    var items = Array.prototype.slice.call(arguments);
+    return function (callback) {
+      var left = items.length + 1;
+      var isDone = false;
+      items.forEach(function (continuable) {
+        continuable(check);
+      });
+      check();
+      function done(err) {
+        if (isDone) return;
+        isDone = true;
+        callback(err);
+      }
+      function check(err) {
+        if (err) return done(err);
+        if (--left) return;
+        done();
+      }
+    };
+  }
+
+  function serial() {
+    var items = Array.prototype.slice.call(arguments);
+    return function (callback) {
+      check();
+      function check(err) {
+        if (err) return callback(err);
+        var next = items.shift();
+        if (!next) return callback();
+        next(check);
+      }
+    };
+  }
+
+  function init(config) {
+    var conf = Object.keys(config).map(function (key) {
+      var section = config[key];
+      return "[" + key + "]\n" + Object.keys(section).map(function (key) {
+        return "\t" + key + " = " + JSON.stringify(section[key]) + "\n";
+      }).join("");
+    }).join("");
+    var description = "Unnamed repository; edit this file 'description' to name the repository.\n";
+    var exclude =
+      "# git ls-files --others --exclude-from=.git/info/exclude\n" +
+      "# Lines that start with '#' are comments.\n" +
+      "# For a project mostly in C, the following would be a good set of\n" +
+      "# exclude patterns (uncomment them if you want to use them):\n" +
+      "# *.[oa]\n" +
+      "# *~\n";
+    return serial(
+      fs.mkdir("."),
+      parallel(
+        fs.mkdir("branches"),
+        write("config", conf),
+        write("description", description),
+        write("HEAD", "ref: refs/heads/master\n"),
+        fs.mkdir("hooks"),
+        serial(
+          fs.mkdir("info"),
+          write("info/exclude", exclude)
+        ),
+        serial(
+          fs.mkdir("objects"),
+          parallel(
+            fs.mkdir("objects/info"),
+            fs.mkdir("objects/pack")
+          )
+        ),
+        serial(
+          fs.mkdir("refs"),
+          parallel(
+            fs.mkdir("refs/heads"),
+            fs.mkdir("refs/tags")
+          )
+        )
+      )
+    );
+  }
 
   function mkdirp(path, callback) {
     fs.mkdir(path)(function (err) {

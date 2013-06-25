@@ -8,7 +8,7 @@ var consume = require('./stream-to-string.js');
 run(function* main() {
   
   // Configure the repo API to work from a local clone.
-  var repo = gitRepo({ fs: fs("./test-repo.git"), bare: true});
+  var repo = yield gitRepo({ fs: fs("./test-repo.git"), bare: true});
 
   console.log("Looking up hash that HEAD points to...");
   var hash = yield repo.readRef("HEAD");

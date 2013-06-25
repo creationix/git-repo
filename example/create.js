@@ -28,27 +28,7 @@ var commits = {
 run(function* main() {
 
   // Configure the repo API to work from a local clone.
-  var repo = gitRepo({ fs: fs("./test-repo.git"), bare: true});
-  // Initialize the repo.
-  // TODO: move this logic into gitRepo with an { init: true } flag
-  yield repo.db.mkdir(".");
-  yield parallel(
-    repo.db.mkdir("branches"),
-    repo.db.write("config", '[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = true\n'),
-    repo.db.write("description", 'Unnamed repository; edit this file \'description\' to name the repository.\n'),
-    repo.db.write("HEAD", "ref: refs/heads/master\n"),
-    repo.db.mkdir("hooks"),
-    repo.db.mkdir("info"),
-    repo.db.mkdir("objects"),
-    repo.db.mkdir("refs")
-  );
-  yield parallel(
-    repo.db.write("info/exclude", "'# git ls-files --others --exclude-from=.git/info/exclude\n# Lines that start with \'#\' are comments.\n# For a project mostly in C, the following would be a good set of\n# exclude patterns (uncomment them if you want to use them):\n# *.[oa]\n# *~\n'"),
-    repo.db.mkdir("objects/info"),
-    repo.db.mkdir("objects/pack"),
-    repo.db.mkdir("refs/heads"),
-    repo.db.mkdir("refs/tags")
-  );
+  var repo = yield gitRepo({ fs: fs("./test-repo.git"), bare: true, init: true });
   console.log("Git database Initialized");
 
   
@@ -89,31 +69,6 @@ function* each(object, callback) {
     var key = keys[i];
     yield* callback(key, object[key]);
   }
-}
-
-// Run several continuables in parallel
-function parallel() {
-  var continuables = Array.prototype.slice.call(arguments);
-  return function (callback) {
-    var left = continuables.length + 1;
-    var isDone = false;
-    continuables.forEach(function (continuable) {
-      continuable(function (err) {
-        if (err) return done(err);
-        check();
-      });
-    });
-    check();
-    function done(err) {
-      if (isDone) return;
-      isDone = true;
-      callback(err);
-    }
-    function check() {
-      if (--left) return;
-      done();
-    }
-  };
 }
 
 // Format a js data object into the data format expected in git commits.
